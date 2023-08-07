@@ -6,7 +6,7 @@ sql:
    gen:
      go:
        package: "db"
-       out: "internal/storage/postgres/sqlc"
+       out: "internal/storage/postgres/db"
        emit_json_tags: true
        emit_interface: true
        emit_empty_slices: true
