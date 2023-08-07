@@ -11,7 +11,7 @@ import (
 )
 
 const getOneNode = `-- name: GetOneNode :one
-SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, info.contant_person FROM nodes LEFT JOIN info ON nodes.id = info.node_id
+SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, info.contant_person FROM nodes LEFT JOIN info ON nodes.id = info.node_id WHERE id=$1
 `
 
 type GetOneNodeRow struct {
@@ -23,8 +23,8 @@ type GetOneNodeRow struct {
 	ContantPerson sql.NullString `json:"contant_person"`
 }
 
-func (q *Queries) GetOneNode(ctx context.Context) (GetOneNodeRow, error) {
-	row := q.db.QueryRowContext(ctx, getOneNode)
+func (q *Queries) GetOneNode(ctx context.Context, id sql.NullInt32) (GetOneNodeRow, error) {
+	row := q.db.QueryRowContext(ctx, getOneNode, id)
 	var i GetOneNodeRow
 	err := row.Scan(
 		&i.ID,

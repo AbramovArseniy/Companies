@@ -12,7 +12,7 @@ import (
 type Querier interface {
 	GetAllTree(ctx context.Context) ([]GetAllTreeRow, error)
 	GetHierarchy(ctx context.Context, id sql.NullInt32) ([]GetHierarchyRow, error)
-	GetOneNode(ctx context.Context) (GetOneNodeRow, error)
+	GetOneNode(ctx context.Context, id sql.NullInt32) (GetOneNodeRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
