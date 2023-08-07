@@ -10,7 +10,7 @@ import (
 	"database/sql"
 )
 
-const getIerarchy = `-- name: GetIerarchy :many
+const getHierarchy = `-- name: GetHierarchy :many
 WITH RECURSIVE r(id, name, parent_id, level) AS
         (SELECT tr.id, tr.name, tr.parent_id, 1
         FROM nodes tl
@@ -26,7 +26,7 @@ WITH RECURSIVE r(id, name, parent_id, level) AS
         ON hierarchy.id = info.node_id
 `
 
-type GetIerarchyRow struct {
+type GetHierarchyRow struct {
 	ID            sql.NullInt32  `json:"id"`
 	Name          sql.NullString `json:"name"`
 	ParentID      sql.NullInt32  `json:"parent_id"`
@@ -36,15 +36,15 @@ type GetIerarchyRow struct {
 	ContantPerson sql.NullString `json:"contant_person"`
 }
 
-func (q *Queries) GetIerarchy(ctx context.Context, id sql.NullInt32) ([]GetIerarchyRow, error) {
-	rows, err := q.db.QueryContext(ctx, getIerarchy, id)
+func (q *Queries) GetHierarchy(ctx context.Context, id sql.NullInt32) ([]GetHierarchyRow, error) {
+	rows, err := q.db.QueryContext(ctx, getHierarchy, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetIerarchyRow{}
+	items := []GetHierarchyRow{}
 	for rows.Next() {
-		var i GetIerarchyRow
+		var i GetHierarchyRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,

@@ -1,4 +1,4 @@
--- name: GetIerarchy :many
+-- name: GetHierarchy :many
 WITH RECURSIVE r(id, name, parent_id, level) AS
         (SELECT tr.id, tr.name, tr.parent_id, 1
         FROM nodes tl
