@@ -8,13 +8,16 @@ import (
 	"github.com/AbramovArseniy/Companies/internal/cfg"
 	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
 	"github.com/go-chi/chi"
+	_ "github.com/jackc/pgx/v5/stdlib"
+
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type httpHandler struct {
 	Storage db.Querier
 }
 
-func New(cfg cfg.Config) *httpHandler {
+func New(cfg *cfg.Config) *httpHandler {
 	database, err := sql.Open("pgx", cfg.DBAddress)
 	if err != nil {
 		log.Println("error while opening database:", err)
