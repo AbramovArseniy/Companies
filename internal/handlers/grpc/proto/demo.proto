@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package demo;
+
+option go_package = "demo/proto";
+
+message NodeInfo{
+        int32 id = 1;              
+        string name = 2;                   
+        int32 parent_id = 3;        
+        string address = 4;        
+        string phone_number = 5;    
+        string contant_person = 6; 
+}
+
+message GetTreeRequest{}
+
+message GetNodeRequest{
+    int32 node_id = 1;
+}
+
+message GetHierarchyRequest{
+    int32 node_id = 1;  
+}
+
+message GetTreeResponse{
+    repeated NodeInfo info = 1;
+}
+
+message GetHierarchyResponse{
+    repeated NodeInfo info = 1;
+}
+
+message GetNodeResponse{
+    NodeInfo info = 1;
+}
+
+
+
+service CompaniesService{
+    rpc GetTree(GetTreeRequest) returns (GetTreeResponse);
+    rpc GetHierarchy(GetHierarchyRequest) returns (GetHierarchyResponse);
+    rpc GetNode(GetNodeRequest) returns (GetNodeResponse);
+}
