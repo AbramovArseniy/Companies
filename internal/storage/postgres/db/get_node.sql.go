@@ -11,7 +11,7 @@ import (
 )
 
 const getOneNode = `-- name: GetOneNode :one
-SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, info.contant_person FROM nodes LEFT JOIN info ON nodes.id = info.node_id WHERE id=$1
+SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, info.contact_person FROM nodes LEFT JOIN info ON nodes.id = info.node_id WHERE id=$1
 `
 
 type GetOneNodeRow struct {
@@ -20,7 +20,7 @@ type GetOneNodeRow struct {
 	ParentID      sql.NullInt32  `json:"parent_id"`
 	Address       sql.NullString `json:"address"`
 	PhoneNumber   sql.NullString `json:"phone_number"`
-	ContantPerson sql.NullString `json:"contant_person"`
+	ContactPerson sql.NullString `json:"contact_person"`
 }
 
 func (q *Queries) GetOneNode(ctx context.Context, id int32) (GetOneNodeRow, error) {
@@ -32,7 +32,7 @@ func (q *Queries) GetOneNode(ctx context.Context, id int32) (GetOneNodeRow, erro
 		&i.ParentID,
 		&i.Address,
 		&i.PhoneNumber,
-		&i.ContantPerson,
+		&i.ContactPerson,
 	)
 	return i, err
 }

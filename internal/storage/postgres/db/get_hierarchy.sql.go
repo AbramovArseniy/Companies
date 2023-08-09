@@ -21,7 +21,7 @@ WITH RECURSIVE r(id, name, parent_id, level) AS
         SELECT t.id, t.name, t.parent_id, level+1
         FROM nodes t, r
         WHERE t.id = r.parent_id )
-        SELECT id, name, parent_id, ROW_NUMBER() OVER (ORDER BY level DESC) AS level, info.address, info.phone_number, info.contant_person FROM r AS hierarchy 
+        SELECT id, name, parent_id, ROW_NUMBER() OVER (ORDER BY level DESC) AS level, info.address, info.phone_number, info.contact_person FROM r AS hierarchy 
         LEFT JOIN info 
         ON hierarchy.id = info.node_id
 `
@@ -33,7 +33,7 @@ type GetHierarchyRow struct {
 	Level         int64          `json:"level"`
 	Address       sql.NullString `json:"address"`
 	PhoneNumber   sql.NullString `json:"phone_number"`
-	ContantPerson sql.NullString `json:"contant_person"`
+	ContactPerson sql.NullString `json:"contact_person"`
 }
 
 func (q *Queries) GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow, error) {
@@ -52,7 +52,7 @@ func (q *Queries) GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow
 			&i.Level,
 			&i.Address,
 			&i.PhoneNumber,
-			&i.ContantPerson,
+			&i.ContactPerson,
 		); err != nil {
 			return nil, err
 		}

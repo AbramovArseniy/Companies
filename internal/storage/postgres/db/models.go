@@ -11,7 +11,7 @@ import (
 type Info struct {
 	Address       sql.NullString `json:"address"`
 	PhoneNumber   sql.NullString `json:"phone_number"`
-	ContantPerson sql.NullString `json:"contant_person"`
+	ContactPerson sql.NullString `json:"contact_person"`
 	NodeID        sql.NullInt32  `json:"node_id"`
 }
 

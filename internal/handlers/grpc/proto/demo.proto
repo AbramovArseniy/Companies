@@ -10,7 +10,7 @@ message NodeInfo{
         int32 parent_id = 3;        
         string address = 4;        
         string phone_number = 5;    
-        string contant_person = 6; 
+        string contact_person = 6; 
 }
 
 message GetTreeRequest{}

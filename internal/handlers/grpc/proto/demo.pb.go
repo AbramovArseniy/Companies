@@ -30,7 +30,7 @@ type NodeInfo struct {
 	ParentId      int32  `protobuf:"varint,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	Address       string `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"`
 	PhoneNumber   string `protobuf:"bytes,5,opt,name=phone_number,json=phoneNumber,proto3" json:"phone_number,omitempty"`
-	ContantPerson string `protobuf:"bytes,6,opt,name=contant_person,json=contantPerson,proto3" json:"contant_person,omitempty"`
+	ContactPerson string `protobuf:"bytes,6,opt,name=contact_person,json=contactPerson,proto3" json:"contact_person,omitempty"`
 }
 
 func (x *NodeInfo) Reset() {
@@ -100,9 +100,9 @@ func (x *NodeInfo) GetPhoneNumber() string {
 	return ""
 }
 
-func (x *NodeInfo) GetContantPerson() string {
+func (x *NodeInfo) GetContactPerson() string {
 	if x != nil {
-		return x.ContantPerson
+		return x.ContactPerson
 	}
 	return ""
 }

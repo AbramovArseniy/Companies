@@ -11,7 +11,7 @@ import (
 )
 
 const getAllTree = `-- name: GetAllTree :many
-SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, info.contant_person FROM nodes LEFT JOIN info ON nodes.id = info.node_id
+SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, info.contact_person FROM nodes LEFT JOIN info ON nodes.id = info.node_id
 `
 
 type GetAllTreeRow struct {
@@ -20,7 +20,7 @@ type GetAllTreeRow struct {
 	ParentID      sql.NullInt32  `json:"parent_id"`
 	Address       sql.NullString `json:"address"`
 	PhoneNumber   sql.NullString `json:"phone_number"`
-	ContantPerson sql.NullString `json:"contant_person"`
+	ContactPerson sql.NullString `json:"contact_person"`
 }
 
 func (q *Queries) GetAllTree(ctx context.Context) ([]GetAllTreeRow, error) {
@@ -38,7 +38,7 @@ func (q *Queries) GetAllTree(ctx context.Context) ([]GetAllTreeRow, error) {
 			&i.ParentID,
 			&i.Address,
 			&i.PhoneNumber,
-			&i.ContantPerson,
+			&i.ContactPerson,
 		); err != nil {
 			return nil, err
 		}
