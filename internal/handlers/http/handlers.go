@@ -65,7 +65,7 @@ func (h *httpHandler) GetHierarchyHandler(w http.ResponseWriter, r *http.Request
 		http.Error(w, "error while reading url parameter", http.StatusBadRequest)
 		return
 	}
-	hierarchy, err := h.Storage.GetHierarchy(context.Background(), sql.NullInt32{Int32: int32(id), Valid: true})
+	hierarchy, err := h.Storage.GetHierarchy(context.Background(), int32(id))
 	if errors.Is(err, sql.ErrNoRows) {
 		log.Println("error while getting hierarchy from database:", err)
 		http.Error(w, "no such node", http.StatusNotFound)
@@ -99,7 +99,7 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error while reading url parameter", http.StatusBadRequest)
 		return
 	}
-	node, err := h.Storage.GetOneNode(context.Background(), sql.NullInt32{Int32: int32(id), Valid: true})
+	node, err := h.Storage.GetOneNode(context.Background(), int32(id))
 	if errors.Is(err, sql.ErrNoRows) {
 		log.Println("error while getting node from database:", err)
 		http.Error(w, "no such node", http.StatusNotFound)
@@ -130,6 +130,6 @@ func (h *httpHandler) Route() chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", h.GetTreeHandler)
 	r.Get("/hierarchy/{id}", h.GetHierarchyHandler)
-	r.Get("/node/{id}/", h.GetNodeHandler)
+	r.Get("/node/{id}", h.GetNodeHandler)
 	return r
 }

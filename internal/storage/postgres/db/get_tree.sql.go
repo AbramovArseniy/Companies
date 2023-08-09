@@ -11,11 +11,11 @@ import (
 )
 
 const getAllTree = `-- name: GetAllTree :many
-SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, info.contant_person FROM nodes JOIN info ON nodes.id = info.node_id
+SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, info.contant_person FROM nodes LEFT JOIN info ON nodes.id = info.node_id
 `
 
 type GetAllTreeRow struct {
-	ID            sql.NullInt32  `json:"id"`
+	ID            int32          `json:"id"`
 	Name          string         `json:"name"`
 	ParentID      sql.NullInt32  `json:"parent_id"`
 	Address       sql.NullString `json:"address"`

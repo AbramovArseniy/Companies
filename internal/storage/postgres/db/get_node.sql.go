@@ -15,7 +15,7 @@ SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, i
 `
 
 type GetOneNodeRow struct {
-	ID            sql.NullInt32  `json:"id"`
+	ID            int32          `json:"id"`
 	Name          string         `json:"name"`
 	ParentID      sql.NullInt32  `json:"parent_id"`
 	Address       sql.NullString `json:"address"`
@@ -23,7 +23,7 @@ type GetOneNodeRow struct {
 	ContantPerson sql.NullString `json:"contant_person"`
 }
 
-func (q *Queries) GetOneNode(ctx context.Context, id sql.NullInt32) (GetOneNodeRow, error) {
+func (q *Queries) GetOneNode(ctx context.Context, id int32) (GetOneNodeRow, error) {
 	row := q.db.QueryRowContext(ctx, getOneNode, id)
 	var i GetOneNodeRow
 	err := row.Scan(

@@ -16,7 +16,7 @@ type Info struct {
 }
 
 type Node struct {
-	ID       sql.NullInt32 `json:"id"`
+	ID       int32         `json:"id"`
 	Name     string        `json:"name"`
 	ParentID sql.NullInt32 `json:"parent_id"`
 }
