@@ -2,8 +2,10 @@ package grpc
 
 import (
 	"context"
+	"database/sql"
 	"log"
 
+	"github.com/AbramovArseniy/Companies/internal/cfg"
 	pb "github.com/AbramovArseniy/Companies/internal/handlers/grpc/proto"
 	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
 )
@@ -12,6 +14,18 @@ type CompaniesServer struct {
 	pb.UnimplementedCompaniesServiceServer
 
 	Storage db.Querier
+}
+
+func New(cfg *cfg.Config) *CompaniesServer {
+	database, err := sql.Open("pgx", cfg.DBAddress)
+	if err != nil {
+		log.Println("error while opening database:", err)
+		return nil
+	}
+	querier := db.New(database)
+	return &CompaniesServer{
+		Storage: querier,
+	}
 }
 
 func (s *CompaniesServer) GetTree(context.Context, *pb.GetTreeRequest) (*pb.GetTreeResponse, error) {
