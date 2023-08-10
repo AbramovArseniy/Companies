@@ -38,12 +38,24 @@ func (s *CompaniesServer) GetTree(context.Context, *pb.GetTreeRequest) (*pb.GetT
 		Info: make([]*pb.NodeInfo, len(tree)),
 	}
 	for i, val := range tree {
-		resp.Info[i].Address = val.Address.String
-		resp.Info[i].ContactPerson = val.ContactPerson.String
+		resp.Info[i] = &pb.NodeInfo{
+			Id:   val.ID,
+			Name: val.Name,
+		}
+		if val.Address.Valid {
+			resp.Info[i].Address = val.Address.String
+		}
+		if val.ContactPerson.Valid {
+			resp.Info[i].ContactPerson = val.ContactPerson.String
+		}
 		resp.Info[i].Id = val.ID
 		resp.Info[i].Name = val.Name
-		resp.Info[i].ParentId = val.ParentID.Int32
-		resp.Info[i].PhoneNumber = val.PhoneNumber.String
+		if val.ParentID.Valid {
+			resp.Info[i].ParentId = val.ParentID.Int32
+		}
+		if val.PhoneNumber.Valid {
+			resp.Info[i].PhoneNumber = val.PhoneNumber.String
+		}
 	}
 	return resp, nil
 }
@@ -58,12 +70,25 @@ func (s *CompaniesServer) GetHierarchy(_ context.Context, req *pb.GetHierarchyRe
 		Info: make([]*pb.NodeInfo, len(tree)),
 	}
 	for i, val := range tree {
-		resp.Info[i].Address = val.Address.String
-		resp.Info[i].ContactPerson = val.ContactPerson.String
-		resp.Info[i].Id = val.ID.Int32
-		resp.Info[i].Name = val.Name.String
-		resp.Info[i].ParentId = val.ParentID.Int32
-		resp.Info[i].PhoneNumber = val.PhoneNumber.String
+		resp.Info[i] = &pb.NodeInfo{}
+		if val.Address.Valid {
+			resp.Info[i].Address = val.Address.String
+		}
+		if val.ContactPerson.Valid {
+			resp.Info[i].ContactPerson = val.ContactPerson.String
+		}
+		if val.ID.Valid {
+			resp.Info[i].Id = val.ID.Int32
+		}
+		if val.Name.Valid {
+			resp.Info[i].Name = val.Name.String
+		}
+		if val.ParentID.Valid {
+			resp.Info[i].ParentId = val.ParentID.Int32
+		}
+		if val.PhoneNumber.Valid {
+			resp.Info[i].PhoneNumber = val.PhoneNumber.String
+		}
 	}
 	return resp, nil
 }
@@ -76,12 +101,22 @@ func (s *CompaniesServer) GetNode(_ context.Context, req *pb.GetNodeRequest) (*p
 	}
 	resp := &pb.GetNodeResponse{
 		Info: &pb.NodeInfo{
-			Address:       node.Address.String,
-			ContactPerson: node.ContactPerson.String,
-			Id:            node.ID,
-			Name:          node.Name,
-			ParentId:      node.ParentID.Int32,
+			Id:   node.ID,
+			Name: node.Name,
 		},
+	}
+
+	if node.Address.Valid {
+		resp.Info.Address = node.Address.String
+	}
+	if node.ContactPerson.Valid {
+		resp.Info.ContactPerson = node.ContactPerson.String
+	}
+	if node.ParentID.Valid {
+		resp.Info.ParentId = node.ParentID.Int32
+	}
+	if node.PhoneNumber.Valid {
+		resp.Info.PhoneNumber = node.PhoneNumber.String
 	}
 	return resp, nil
 }

@@ -53,7 +53,7 @@ func main() {
 	gr.Add(1)
 	go func() {
 		if err := grpcSrv.Serve(listen); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		gr.Done()
 	}()
