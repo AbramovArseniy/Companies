@@ -31,7 +31,7 @@ func main() {
 	gr.Add(1)
 	go func() {
 		err := httpSrv.ListenAndServe()
-		log.Println("error while starting server:", err)
+		log.Println("error on http server:", err)
 		gr.Done()
 	}()
 	log.Println("http server started at:", cfg.Address)
@@ -53,7 +53,7 @@ func main() {
 	gr.Add(1)
 	go func() {
 		if err := grpcSrv.Serve(listen); err != nil {
-			log.Println(err)
+			log.Println("error on grpc server:", err)
 		}
 		gr.Done()
 	}()
