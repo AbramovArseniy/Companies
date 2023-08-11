@@ -1,3 +1,4 @@
+// package cfg creates configuration for servers
 package cfg
 
 import (
@@ -7,11 +8,13 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
+// Config describes server config
 type Config struct {
 	Address   string `env:"RUN_ADDRESS"`
 	DBAddress string `env:"DATABASE_URI"`
 }
 
+// New creates Config from environment and flags
 func New() *Config {
 	var cfg Config
 

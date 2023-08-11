@@ -1,3 +1,4 @@
+// package http describes HTTP server's work
 package http
 
 import (
@@ -9,20 +10,23 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/AbramovArseniy/Companies/internal/cfg"
-	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
 	"github.com/go-chi/chi"
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/AbramovArseniy/Companies/internal/cfg"
+	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 const contentTypeJSON = "application/json"
 
+// httpHandler describes http server
 type httpHandler struct {
 	Storage db.Querier
 }
 
+// New creates a new httpHandler with config
 func New(cfg *cfg.Config) *httpHandler {
 	database, err := sql.Open("pgx", cfg.DBAddress)
 	if err != nil {
@@ -35,6 +39,7 @@ func New(cfg *cfg.Config) *httpHandler {
 	}
 }
 
+// GetTree returns information about all the nodes in the tree
 func (h *httpHandler) GetTreeHandler(w http.ResponseWriter, r *http.Request) {
 	tree, err := h.Storage.GetAllTree(context.Background())
 	if err != nil {
@@ -58,6 +63,7 @@ func (h *httpHandler) GetTreeHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetHierarchy returns information about hierarchy of a node by the node id
 func (h *httpHandler) GetHierarchyHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -92,6 +98,7 @@ func (h *httpHandler) GetHierarchyHandler(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetNode returns information about one node by the node id
 func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -126,6 +133,7 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Route creates an http router
 func (h *httpHandler) Route() chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", h.GetTreeHandler)

@@ -1,3 +1,4 @@
+// package main starts http and grpc services
 package main
 
 import (
@@ -10,11 +11,12 @@ import (
 	"sync"
 	"syscall"
 
+	"google.golang.org/grpc"
+
 	"github.com/AbramovArseniy/Companies/internal/cfg"
 	grpchandler "github.com/AbramovArseniy/Companies/internal/handlers/grpc"
 	pb "github.com/AbramovArseniy/Companies/internal/handlers/grpc/proto"
 	httphandler "github.com/AbramovArseniy/Companies/internal/handlers/http"
-	"google.golang.org/grpc"
 )
 
 func main() {

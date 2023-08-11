@@ -1,3 +1,4 @@
+// package grpc describes gRPC server's work
 package grpc
 
 import (
@@ -10,12 +11,14 @@ import (
 	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
 )
 
+// CompaniesServer describes grpc server
 type CompaniesServer struct {
 	pb.UnimplementedCompaniesServiceServer
 
 	Storage db.Querier
 }
 
+// New creates new CompaniesServer from config
 func New(cfg *cfg.Config) *CompaniesServer {
 	database, err := sql.Open("pgx", cfg.DBAddress)
 	if err != nil {
@@ -28,6 +31,7 @@ func New(cfg *cfg.Config) *CompaniesServer {
 	}
 }
 
+// GetTree returns information about all the nodes in the tree
 func (s *CompaniesServer) GetTree(context.Context, *pb.GetTreeRequest) (*pb.GetTreeResponse, error) {
 	tree, err := s.Storage.GetAllTree(context.Background())
 	if err != nil {
@@ -60,6 +64,7 @@ func (s *CompaniesServer) GetTree(context.Context, *pb.GetTreeRequest) (*pb.GetT
 	return resp, nil
 }
 
+// GetHierarchy returns information about hierarchy of a node by the node id
 func (s *CompaniesServer) GetHierarchy(_ context.Context, req *pb.GetHierarchyRequest) (*pb.GetHierarchyResponse, error) {
 	tree, err := s.Storage.GetHierarchy(context.Background(), req.NodeId)
 	if err != nil {
@@ -93,6 +98,7 @@ func (s *CompaniesServer) GetHierarchy(_ context.Context, req *pb.GetHierarchyRe
 	return resp, nil
 }
 
+// GetNode returns information about one node by the node id
 func (s *CompaniesServer) GetNode(_ context.Context, req *pb.GetNodeRequest) (*pb.GetNodeResponse, error) {
 	node, err := s.Storage.GetOneNode(context.Background(), req.NodeId)
 	if err != nil {
