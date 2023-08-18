@@ -6,14 +6,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/AbramovArseniy/Companies/internal/cfg"
 	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -27,16 +28,16 @@ type httpHandler struct {
 }
 
 // New creates a new httpHandler with config
-func New(cfg *cfg.Config) *httpHandler {
-	database, err := sql.Open("pgx", cfg.DBAddress)
+func New(dbPool *pgxpool.Pool) (*httpHandler, error) {
+	dbConn, err := dbPool.Acquire(context.Background())
 	if err != nil {
-		log.Println("error while opening database:", err)
-		return nil
+		return nil, fmt.Errorf("error while acquiring database connection: %w", err)
 	}
-	querier := db.New(database)
+	storage := db.New(dbConn)
+
 	return &httpHandler{
-		Storage: querier,
-	}
+		Storage: storage,
+	}, nil
 }
 
 // GetTree returns information about all the nodes in the tree

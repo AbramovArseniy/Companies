@@ -17,11 +17,13 @@ import (
 	grpchandler "github.com/AbramovArseniy/Companies/internal/handlers/grpc"
 	pb "github.com/AbramovArseniy/Companies/internal/handlers/grpc/proto"
 	httphandler "github.com/AbramovArseniy/Companies/internal/handlers/http"
+	"github.com/AbramovArseniy/Companies/internal/storage/postgres"
 )
 
 func main() {
 	cfg := cfg.New()
-	handler := httphandler.New(cfg)
+	dbPool, err := postgres.New(cfg.DBAddress)
+	handler, err := httphandler.New(dbPool)
 	router := handler.Route()
 	httpSrv := http.Server{
 		Addr:    cfg.Address,
@@ -51,7 +53,8 @@ func main() {
 		log.Fatal(err)
 	}
 	grpcSrv := grpc.NewServer()
-	pb.RegisterCompaniesServiceServer(grpcSrv, grpchandler.New(cfg))
+	grpcHandler, err := grpchandler.New(dbPool)
+	pb.RegisterCompaniesServiceServer(grpcSrv, grpcHandler)
 	gr.Add(1)
 	go func() {
 		if err := grpcSrv.Serve(listen); err != nil {
