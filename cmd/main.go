@@ -23,7 +23,15 @@ import (
 func main() {
 	cfg := cfg.New()
 	dbPool, err := postgres.New(cfg.DBAddress)
+	if err != nil {
+		log.Println("error while connecting to database:", err)
+		return
+	}
 	handler, err := httphandler.New(dbPool)
+	if err != nil {
+		log.Println("error while creating http handler:", err)
+		return
+	}
 	router := handler.Route()
 	httpSrv := http.Server{
 		Addr:    cfg.Address,
@@ -54,6 +62,10 @@ func main() {
 	}
 	grpcSrv := grpc.NewServer()
 	grpcHandler, err := grpchandler.New(dbPool)
+	if err != nil {
+		log.Println("error while creating grpc handler:", err)
+		return
+	}
 	pb.RegisterCompaniesServiceServer(grpcSrv, grpcHandler)
 	gr.Add(1)
 	go func() {
