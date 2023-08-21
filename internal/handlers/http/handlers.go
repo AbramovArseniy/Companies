@@ -48,19 +48,19 @@ func (h *httpHandler) GetTreeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonTree, err := json.MarshalIndent(tree, "", "  ")
+	jsonTree, err := json.Marshal(tree)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", contentTypeJSON)
 	_, err = w.Write(jsonTree)
 	if err != nil {
 		log.Println("error while writing response body:", err)
 		http.Error(w, "error while writing response body", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Add("Content-Type", contentTypeJSON)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -83,19 +83,19 @@ func (h *httpHandler) GetHierarchyHandler(w http.ResponseWriter, r *http.Request
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonHierarchy, err := json.MarshalIndent(hierarchy, "", "  ")
+	jsonHierarchy, err := json.Marshal(hierarchy)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", contentTypeJSON)
 	_, err = w.Write(jsonHierarchy)
 	if err != nil {
 		log.Println("error while writing response body:", err)
 		http.Error(w, "error while writing response body", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Add("Content-Type", contentTypeJSON)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -118,19 +118,19 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonNode, err := json.MarshalIndent(node, "", "  ")
+	jsonNode, err := json.Marshal(node)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", contentTypeJSON)
 	_, err = w.Write(jsonNode)
 	if err != nil {
 		log.Println("error while writing response body:", err)
 		http.Error(w, "error while writing response body", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Add("Content-Type", contentTypeJSON)
 	w.WriteHeader(http.StatusOK)
 }
 
