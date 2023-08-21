@@ -48,7 +48,8 @@ func (h *httpHandler) GetTreeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonTree, err := json.Marshal(tree)
+	nodes := treeRowsToNodes(tree)
+	jsonTree, err := json.Marshal(nodes)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
@@ -83,7 +84,8 @@ func (h *httpHandler) GetHierarchyHandler(w http.ResponseWriter, r *http.Request
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonHierarchy, err := json.Marshal(hierarchy)
+	nodes := hierarchyRowsToNodes(hierarchy)
+	jsonHierarchy, err := json.Marshal(nodes)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
@@ -107,7 +109,7 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error while reading url parameter", http.StatusBadRequest)
 		return
 	}
-	node, err := h.Storage.GetOneNode(context.Background(), int32(id))
+	row, err := h.Storage.GetOneNode(context.Background(), int32(id))
 	if errors.Is(err, sql.ErrNoRows) {
 		log.Println("error while getting node from database:", err)
 		http.Error(w, "no such node", http.StatusNotFound)
@@ -118,7 +120,8 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonNode, err := json.Marshal(node)
+	n := nodeRowToNode(row)
+	jsonNode, err := json.Marshal(n)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
