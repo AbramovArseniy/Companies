@@ -20,3 +20,9 @@ type Node struct {
 	Name     string      `json:"name"`
 	ParentID pgtype.Int4 `json:"parent_id"`
 }
+
+type Tag struct {
+	Uuid   int32       `json:"uuid"`
+	Name   string      `json:"name"`
+	NodeID pgtype.Int4 `json:"node_id"`
+}
