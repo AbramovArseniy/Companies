@@ -7,7 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getOneNode = `-- name: GetOneNode :one
@@ -15,16 +16,16 @@ SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, i
 `
 
 type GetOneNodeRow struct {
-	ID            int32          `json:"id"`
-	Name          string         `json:"name"`
-	ParentID      sql.NullInt32  `json:"parent_id"`
-	Address       sql.NullString `json:"address"`
-	PhoneNumber   sql.NullString `json:"phone_number"`
-	ContactPerson sql.NullString `json:"contact_person"`
+	ID            int32       `json:"id"`
+	Name          string      `json:"name"`
+	ParentID      pgtype.Int4 `json:"parent_id"`
+	Address       pgtype.Text `json:"address"`
+	PhoneNumber   pgtype.Text `json:"phone_number"`
+	ContactPerson pgtype.Text `json:"contact_person"`
 }
 
 func (q *Queries) GetOneNode(ctx context.Context, id int32) (GetOneNodeRow, error) {
-	row := q.db.QueryRowContext(ctx, getOneNode, id)
+	row := q.db.QueryRow(ctx, getOneNode, id)
 	var i GetOneNodeRow
 	err := row.Scan(
 		&i.ID,

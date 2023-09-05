@@ -6,14 +6,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/AbramovArseniy/Companies/internal/cfg"
 	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -27,16 +28,16 @@ type httpHandler struct {
 }
 
 // New creates a new httpHandler with config
-func New(cfg *cfg.Config) *httpHandler {
-	database, err := sql.Open("pgx", cfg.DBAddress)
+func New(dbPool *pgxpool.Pool) (*httpHandler, error) {
+	dbConn, err := dbPool.Acquire(context.Background())
 	if err != nil {
-		log.Println("error while opening database:", err)
-		return nil
+		return nil, fmt.Errorf("error while acquiring database connection: %w", err)
 	}
-	querier := db.New(database)
+	storage := db.New(dbConn)
+
 	return &httpHandler{
-		Storage: querier,
-	}
+		Storage: storage,
+	}, nil
 }
 
 // GetTree returns information about all the nodes in the tree
@@ -47,19 +48,20 @@ func (h *httpHandler) GetTreeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonTree, err := json.MarshalIndent(tree, "", "  ")
+	nodes := treeRowsToNodes(tree)
+	jsonTree, err := json.Marshal(nodes)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", contentTypeJSON)
 	_, err = w.Write(jsonTree)
 	if err != nil {
 		log.Println("error while writing response body:", err)
 		http.Error(w, "error while writing response body", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Add("Content-Type", contentTypeJSON)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -82,19 +84,20 @@ func (h *httpHandler) GetHierarchyHandler(w http.ResponseWriter, r *http.Request
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonHierarchy, err := json.MarshalIndent(hierarchy, "", "  ")
+	nodes := hierarchyRowsToNodes(hierarchy)
+	jsonHierarchy, err := json.Marshal(nodes)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", contentTypeJSON)
 	_, err = w.Write(jsonHierarchy)
 	if err != nil {
 		log.Println("error while writing response body:", err)
 		http.Error(w, "error while writing response body", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Add("Content-Type", contentTypeJSON)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -106,7 +109,7 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error while reading url parameter", http.StatusBadRequest)
 		return
 	}
-	node, err := h.Storage.GetOneNode(context.Background(), int32(id))
+	row, err := h.Storage.GetOneNode(context.Background(), int32(id))
 	if errors.Is(err, sql.ErrNoRows) {
 		log.Println("error while getting node from database:", err)
 		http.Error(w, "no such node", http.StatusNotFound)
@@ -117,19 +120,20 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	jsonNode, err := json.MarshalIndent(node, "", "  ")
+	n := nodeRowToNode(row)
+	jsonNode, err := json.Marshal(n)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
 		http.Error(w, "encoding json", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", contentTypeJSON)
 	_, err = w.Write(jsonNode)
 	if err != nil {
 		log.Println("error while writing response body:", err)
 		http.Error(w, "error while writing response body", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Add("Content-Type", contentTypeJSON)
 	w.WriteHeader(http.StatusOK)
 }
 

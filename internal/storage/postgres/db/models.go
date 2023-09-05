@@ -5,18 +5,18 @@
 package db
 
 import (
-	"database/sql"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Info struct {
-	Address       sql.NullString `json:"address"`
-	PhoneNumber   sql.NullString `json:"phone_number"`
-	ContactPerson sql.NullString `json:"contact_person"`
-	NodeID        sql.NullInt32  `json:"node_id"`
+	Address       pgtype.Text `json:"address"`
+	PhoneNumber   pgtype.Text `json:"phone_number"`
+	ContactPerson pgtype.Text `json:"contact_person"`
+	NodeID        pgtype.Int4 `json:"node_id"`
 }
 
 type Node struct {
-	ID       int32         `json:"id"`
-	Name     string        `json:"name"`
-	ParentID sql.NullInt32 `json:"parent_id"`
+	ID       int32       `json:"id"`
+	Name     string      `json:"name"`
+	ParentID pgtype.Int4 `json:"parent_id"`
 }
