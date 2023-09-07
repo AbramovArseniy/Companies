@@ -17,8 +17,8 @@ import (
 	grpchandler "github.com/AbramovArseniy/Companies/internal/handlers/grpc"
 	pb "github.com/AbramovArseniy/Companies/internal/handlers/grpc/proto"
 	httphandler "github.com/AbramovArseniy/Companies/internal/handlers/http"
+	"github.com/AbramovArseniy/Companies/internal/kafka"
 	"github.com/AbramovArseniy/Companies/internal/storage/postgres"
-	"github.com/IBM/sarama"
 )
 
 func main() {
@@ -38,9 +38,9 @@ func main() {
 		Addr:    cfg.Address,
 		Handler: router,
 	}
-	consumer, err := sarama.NewConsumer(cfg.Brokers, nil)
+	kafka1, err := kafka.New(dbPool, *cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("cannot create kafka consumer:", err)
 	}
 	idleConnsClosed := make(chan struct{})
 	sigint := make(chan os.Signal, 1)
@@ -65,9 +65,9 @@ func main() {
 		if err := httpSrv.Shutdown(ctx); err != nil {
 			log.Printf("HTTP server Shutdown: %v", err)
 		}
-		err := consumer.Close()
+		err := kafka1.Close()
 		if err != nil {
-			log.Println(err)
+			log.Println("cannot close kafka consumer:", err)
 		}
 		grpcSrv.GracefulStop()
 		close(idleConnsClosed)
@@ -87,21 +87,9 @@ func main() {
 		}
 		gr.Done()
 	}()
-	partitionList, err := consumer.Partitions(cfg.ChangesTopic) //get all partitions
+	err = kafka1.ListenTagChanges(cfg.ChangesTopic, &gr)
 	if err != nil {
-		log.Fatal(err)
-	}
-	initialOffset := sarama.OffsetOldest //offset to start reading message from
-	for _, partition := range partitionList {
-		pc, _ := consumer.ConsumePartition(cfg.ChangesTopic, partition, initialOffset)
-		gr.Add(1)
-		go func(pc sarama.PartitionConsumer) {
-			for msg := range pc.Messages() {
-				// here is what to do with kafka info
-				log.Println(string(msg.Value))
-			}
-			gr.Done()
-		}(pc)
+		log.Println("cannot listen to tag changes:", err)
 	}
 	log.Println("gRPC server started at:", listen.Addr())
 	gr.Wait()
