@@ -18,6 +18,7 @@ import (
 	pb "github.com/AbramovArseniy/Companies/internal/handlers/grpc/proto"
 	httphandler "github.com/AbramovArseniy/Companies/internal/handlers/http"
 	"github.com/AbramovArseniy/Companies/internal/storage/postgres"
+	"github.com/IBM/sarama"
 )
 
 func main() {
@@ -37,10 +38,10 @@ func main() {
 		Addr:    cfg.Address,
 		Handler: router,
 	}
-	gr := sync.WaitGroup{}
-
-	gr.Add(1)
-
+	consumer, err := sarama.NewConsumer(cfg.Brokers, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 	idleConnsClosed := make(chan struct{})
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt)
@@ -54,13 +55,19 @@ func main() {
 		log.Println("error while creating grpc handler:", err)
 		return
 	}
+	gr := sync.WaitGroup{}
 	pb.RegisterCompaniesServiceServer(grpcSrv, grpcHandler)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
+	gr.Add(1)
 	go func() {
 		<-sigint
 		if err := httpSrv.Shutdown(ctx); err != nil {
 			log.Printf("HTTP server Shutdown: %v", err)
+		}
+		err := consumer.Close()
+		if err != nil {
+			log.Println(err)
 		}
 		grpcSrv.GracefulStop()
 		close(idleConnsClosed)
@@ -80,6 +87,22 @@ func main() {
 		}
 		gr.Done()
 	}()
+	partitionList, err := consumer.Partitions(cfg.ChangesTopic) //get all partitions
+	if err != nil {
+		log.Fatal(err)
+	}
+	initialOffset := sarama.OffsetOldest //offset to start reading message from
+	for _, partition := range partitionList {
+		pc, _ := consumer.ConsumePartition(cfg.ChangesTopic, partition, initialOffset)
+		gr.Add(1)
+		go func(pc sarama.PartitionConsumer) {
+			for msg := range pc.Messages() {
+				// here is what to do with kafka info
+				log.Println(string(msg.Value))
+			}
+			gr.Done()
+		}(pc)
+	}
 	log.Println("gRPC server started at:", listen.Addr())
 	gr.Wait()
 }
