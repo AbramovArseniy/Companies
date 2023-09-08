@@ -27,3 +27,8 @@ type Tag struct {
 	Value  float64     `json:"value"`
 	NodeID pgtype.Int4 `json:"node_id"`
 }
+
+type TagsJournal struct {
+	Uuid       string           `json:"uuid"`
+	ChangeTime pgtype.Timestamp `json:"change_time"`
+}
