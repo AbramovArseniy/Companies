@@ -9,13 +9,31 @@ import (
 	"context"
 )
 
-const getChangesNum = `-- name: GetChangesNum :one
-SELECT COUNT(*) FROM tags_journal WHERE uuid=$1 AND change_time >= now() - interval '5 minute'
+const getChangesNum = `-- name: GetChangesNum :many
+SELECT tags.name, COUNT(*) FROM tags_journal  RIGHT JOIN tags ON tags_journal.uuid = tags.uuid GROUP BY tags.name
 `
 
-func (q *Queries) GetChangesNum(ctx context.Context, uuid string) (int64, error) {
-	row := q.db.QueryRow(ctx, getChangesNum, uuid)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
+type GetChangesNumRow struct {
+	Name  string `json:"name"`
+	Count int64  `json:"count"`
+}
+
+func (q *Queries) GetChangesNum(ctx context.Context) ([]GetChangesNumRow, error) {
+	rows, err := q.db.Query(ctx, getChangesNum)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetChangesNumRow
+	for rows.Next() {
+		var i GetChangesNumRow
+		if err := rows.Scan(&i.Name, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sync"
 
 	"github.com/AbramovArseniy/Companies/internal/cfg"
 	"github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
@@ -33,7 +32,7 @@ func New(dbPool *pgxpool.Pool, cfg cfg.Config) (*Kafka, error) {
 	}, nil
 }
 
-func (k *Kafka) ListenTagChanges(ChangesTopic string, gr *sync.WaitGroup) error {
+func (k *Kafka) ListenTagChanges(ChangesTopic string) error {
 	partitionList, err := k.Consumer.Partitions(ChangesTopic)
 	if err != nil {
 		return err
@@ -44,12 +43,10 @@ func (k *Kafka) ListenTagChanges(ChangesTopic string, gr *sync.WaitGroup) error 
 		if err != nil {
 			return err
 		}
-		gr.Add(1)
 		go func(pc sarama.PartitionConsumer) {
 			for msg := range pc.Messages() {
 				k.SaveTagValue(msg.Value)
 			}
-			gr.Done()
 		}(pc)
 	}
 	return nil

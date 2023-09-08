@@ -10,7 +10,7 @@ import (
 
 type Querier interface {
 	GetAllTree(ctx context.Context) ([]GetAllTreeRow, error)
-	GetChangesNum(ctx context.Context, uuid string) (int64, error)
+	GetChangesNum(ctx context.Context) ([]GetChangesNumRow, error)
 	GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow, error)
 	GetOneNode(ctx context.Context, id int32) (GetOneNodeRow, error)
 	SaveChange(ctx context.Context, arg SaveChangeParams) error

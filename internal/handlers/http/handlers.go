@@ -137,11 +137,44 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (h *httpHandler) GetStatsHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.Storage.GetChangesNum(context.Background())
+	if errors.Is(err, sql.ErrNoRows) {
+		log.Println("error while getting node from database:", err)
+		http.Error(w, "no such node", http.StatusNotFound)
+		return
+	}
+	resp := make(map[string]int, 0)
+	for _, row := range rows {
+		resp[row.Name] = int(row.Count)
+	}
+	if err != nil {
+		log.Println("error while getting tree from database:", err)
+		http.Error(w, "database error", http.StatusInternalServerError)
+		return
+	}
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		log.Println("error while marshaling json:", err)
+		http.Error(w, "encoding json", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", contentTypeJSON)
+	_, err = w.Write(jsonResp)
+	if err != nil {
+		log.Println("error while writing response body:", err)
+		http.Error(w, "error while writing response body", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 // Route creates an http router
 func (h *httpHandler) Route() chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", h.GetTreeHandler)
 	r.Get("/hierarchy/{id}", h.GetHierarchyHandler)
 	r.Get("/node/{id}", h.GetNodeHandler)
+	r.Get("/stat", h.GetStatsHandler)
 	return r
 }

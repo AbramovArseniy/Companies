@@ -87,7 +87,7 @@ func main() {
 		}
 		gr.Done()
 	}()
-	err = kafka1.ListenTagChanges(cfg.ChangesTopic, &gr)
+	err = kafka1.ListenTagChanges(cfg.ChangesTopic)
 	if err != nil {
 		log.Println("cannot listen to tag changes:", err)
 	}
