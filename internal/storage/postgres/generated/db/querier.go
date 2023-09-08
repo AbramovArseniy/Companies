@@ -13,7 +13,7 @@ type Querier interface {
 	GetChangesNum(ctx context.Context, uuid string) (int64, error)
 	GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow, error)
 	GetOneNode(ctx context.Context, id int32) (GetOneNodeRow, error)
-	SaveChange(ctx context.Context, uuid string) error
+	SaveChange(ctx context.Context, arg SaveChangeParams) error
 	UpdateTag(ctx context.Context, arg UpdateTagParams) error
 }
 

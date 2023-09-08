@@ -11,10 +11,15 @@ import (
 
 const saveChange = `-- name: SaveChange :exec
 INSERT INTO tags_journal (uuid, change_time)
-VALUES ($1, NOW())
+VALUES ($1, to_timestamp($2/1000))
 `
 
-func (q *Queries) SaveChange(ctx context.Context, uuid string) error {
-	_, err := q.db.Exec(ctx, saveChange, uuid)
+type SaveChangeParams struct {
+	Uuid    string      `json:"uuid"`
+	Column2 interface{} `json:"column_2"`
+}
+
+func (q *Queries) SaveChange(ctx context.Context, arg SaveChangeParams) error {
+	_, err := q.db.Exec(ctx, saveChange, arg.Uuid, arg.Column2)
 	return err
 }
