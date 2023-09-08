@@ -43,7 +43,7 @@ func (q *Queries) GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetHierarchyRow{}
+	var items []GetHierarchyRow
 	for rows.Next() {
 		var i GetHierarchyRow
 		if err := rows.Scan(

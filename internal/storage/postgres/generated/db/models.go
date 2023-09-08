@@ -22,7 +22,8 @@ type Node struct {
 }
 
 type Tag struct {
-	Uuid   int32       `json:"uuid"`
+	Uuid   string      `json:"uuid"`
 	Name   string      `json:"name"`
+	Value  float64     `json:"value"`
 	NodeID pgtype.Int4 `json:"node_id"`
 }

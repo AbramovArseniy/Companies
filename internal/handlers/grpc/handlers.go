@@ -7,7 +7,7 @@ import (
 	"log"
 
 	pb "github.com/AbramovArseniy/Companies/internal/handlers/grpc/proto"
-	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
+	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

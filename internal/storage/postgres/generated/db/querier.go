@@ -12,6 +12,7 @@ type Querier interface {
 	GetAllTree(ctx context.Context) ([]GetAllTreeRow, error)
 	GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow, error)
 	GetOneNode(ctx context.Context, id int32) (GetOneNodeRow, error)
+	UpdateTag(ctx context.Context, arg UpdateTagParams) error
 }
 
 var _ Querier = (*Queries)(nil)

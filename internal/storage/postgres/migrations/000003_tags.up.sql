@@ -1,5 +1,6 @@
 CREATE TABLE tags(
-    uuid SERIAL UNIQUE NOT NULL,
+    uuid TEXT UNIQUE NOT NULL,
     name VARCHAR NOT NULL,
+    value FLOAT NOT NULL,
     node_id INT REFERENCES nodes(id) ON DELETE CASCADE
 )

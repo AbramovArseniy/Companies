@@ -30,7 +30,7 @@ func (q *Queries) GetAllTree(ctx context.Context) ([]GetAllTreeRow, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetAllTreeRow{}
+	var items []GetAllTreeRow
 	for rows.Next() {
 		var i GetAllTreeRow
 		if err := rows.Scan(

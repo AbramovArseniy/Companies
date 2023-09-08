@@ -1,6 +1,6 @@
 package http
 
-import "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
+import "github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
 
 type node struct {
 	ID            int32  `json:"id"`

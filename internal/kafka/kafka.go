@@ -2,12 +2,12 @@ package kafka
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/AbramovArseniy/Companies/internal/cfg"
-	"github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
+	"github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
 	"github.com/IBM/sarama"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -47,11 +47,24 @@ func (k *Kafka) ListenTagChanges(ChangesTopic string, gr *sync.WaitGroup) error 
 		gr.Add(1)
 		go func(pc sarama.PartitionConsumer) {
 			for msg := range pc.Messages() {
-				// here is what to do with kafka info
-				log.Println(string(msg.Value))
+				// here is what to do with kafka infoq
+				k.UpdateTag(msg.Value)
 			}
 			gr.Done()
 		}(pc)
+	}
+	return nil
+}
+
+func (k *Kafka) UpdateTag(jsonInfo []byte) error {
+	var TChange TagChange
+	err := json.Unmarshal(jsonInfo, &TChange)
+	if err != nil {
+		return fmt.Errorf("cannot unmarshal json: %v", err)
+	}
+	err = k.Storage.UpdateTag(context.Background(), db.UpdateTagParams{Uuid: TChange.UUID, Value: TChange.Value})
+	if err != nil {
+		return fmt.Errorf("cannot update data in database: %v", err)
 	}
 	return nil
 }

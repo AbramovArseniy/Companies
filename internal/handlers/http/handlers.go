@@ -15,7 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
+	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
