@@ -1,9 +1,7 @@
 package kafka
 
-import "time"
-
 type TagChange struct {
-	UUID      string    `json:"uuid"`
-	TimeStamp time.Time `json:"ts"`
-	Value     float64   `json:"value"`
+	UUID      string  `json:"uuid"`
+	TimeStamp float64 `json:"ts"`
+	Value     float64 `json:"value"`
 }

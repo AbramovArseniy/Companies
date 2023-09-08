@@ -34,11 +34,11 @@ func New(dbPool *pgxpool.Pool, cfg cfg.Config) (*Kafka, error) {
 }
 
 func (k *Kafka) ListenTagChanges(ChangesTopic string, gr *sync.WaitGroup) error {
-	partitionList, err := k.Consumer.Partitions(ChangesTopic) //get all partitions
+	partitionList, err := k.Consumer.Partitions(ChangesTopic)
 	if err != nil {
 		return err
 	}
-	initialOffset := sarama.OffsetOldest //offset to start reading message from
+	initialOffset := sarama.OffsetOldest
 	for _, partition := range partitionList {
 		pc, err := k.Consumer.ConsumePartition(ChangesTopic, partition, initialOffset)
 		if err != nil {
@@ -47,8 +47,7 @@ func (k *Kafka) ListenTagChanges(ChangesTopic string, gr *sync.WaitGroup) error 
 		gr.Add(1)
 		go func(pc sarama.PartitionConsumer) {
 			for msg := range pc.Messages() {
-				// here is what to do with kafka infoq
-				k.UpdateTag(msg.Value)
+				k.SaveTagValue(msg.Value)
 			}
 			gr.Done()
 		}(pc)
@@ -56,13 +55,17 @@ func (k *Kafka) ListenTagChanges(ChangesTopic string, gr *sync.WaitGroup) error 
 	return nil
 }
 
-func (k *Kafka) UpdateTag(jsonInfo []byte) error {
+func (k *Kafka) SaveTagValue(jsonInfo []byte) error {
 	var TChange TagChange
 	err := json.Unmarshal(jsonInfo, &TChange)
 	if err != nil {
 		return fmt.Errorf("cannot unmarshal json: %v", err)
 	}
 	err = k.Storage.UpdateTag(context.Background(), db.UpdateTagParams{Uuid: TChange.UUID, Value: TChange.Value})
+	if err != nil {
+		return fmt.Errorf("cannot update data in database: %v", err)
+	}
+	err = k.Storage.SaveChange(context.Background(), db.SaveChangeParams{Uuid: TChange.UUID, Column2: TChange.TimeStamp})
 	if err != nil {
 		return fmt.Errorf("cannot update data in database: %v", err)
 	}
