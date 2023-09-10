@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -109,7 +110,7 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error while reading url parameter", http.StatusBadRequest)
 		return
 	}
-	row, err := h.Storage.GetOneNode(context.Background(), int32(id))
+	nodeRow, err := h.Storage.GetOneNode(context.Background(), int32(id))
 	if errors.Is(err, sql.ErrNoRows) {
 		log.Println("error while getting node from database:", err)
 		http.Error(w, "no such node", http.StatusNotFound)
@@ -120,7 +121,7 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	n := nodeRowToNode(row)
+	n := nodeRowToNode(nodeRow)
 	jsonNode, err := json.Marshal(n)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
@@ -134,7 +135,36 @@ func (h *httpHandler) GetNodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error while writing response body", http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *httpHandler) GetNodeTagsHandler(w http.ResponseWriter, r *http.Request) {
+	nodeId, err := strconv.Atoi(chi.URLParam(r, "node_id"))
+	if err != nil {
+		log.Println("error while reading url parameter:", err)
+		http.Error(w, "error while reading url parameter", http.StatusBadRequest)
+		return
+	}
+	tagRows, err := h.Storage.GetNodeTags(context.Background(), pgtype.Int4{Int32: int32(nodeId), Valid: true})
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Println("error while getting tags from database:", err)
+		http.Error(w, "database error", http.StatusInternalServerError)
+		return
+	}
+	tags := tagRowsToTags(tagRows)
+	jsonTags, err := json.Marshal(tags)
+	if err != nil {
+		log.Println("error while marshaling json:", err)
+		http.Error(w, "encoding json", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write(jsonTags)
+	if err != nil {
+		log.Println("error while writing response body:", err)
+		http.Error(w, "error while writing response body", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *httpHandler) GetStatsHandler(w http.ResponseWriter, r *http.Request) {
@@ -175,6 +205,7 @@ func (h *httpHandler) Route() chi.Router {
 	r.Get("/", h.GetTreeHandler)
 	r.Get("/hierarchy/{id}", h.GetHierarchyHandler)
 	r.Get("/node/{id}", h.GetNodeHandler)
+	r.Get("/tags/{node_id}", h.GetNodeTagsHandler)
 	r.Get("/stat", h.GetStatsHandler)
 	return r
 }

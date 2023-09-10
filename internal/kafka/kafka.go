@@ -32,6 +32,44 @@ func New(dbPool *pgxpool.Pool, cfg cfg.Config) (*Kafka, error) {
 	}, nil
 }
 
+/*func (k *Kafka) ListenAlerts(AlertsTopic string) error {
+	partitionList, err := k.Consumer.Partitions(AlertsTopic)
+	if err != nil {
+		return err
+	}
+	initialOffset := sarama.OffsetOldest
+	for _, partition := range partitionList {
+		pc, err := k.Consumer.ConsumePartition(AlertsTopic, partition, initialOffset)
+		if err != nil {
+			return err
+		}
+		go func(pc sarama.PartitionConsumer) {
+			for msg := range pc.Messages() {
+				k.SaveTagValue(msg.Value)
+			}
+		}(pc)
+	}
+	return nil
+}*/
+
+/*
+	func (k *Kafka) HandlerAlert(jsonInfo []byte) error {
+		var alert Alert
+		err := json.Unmarshal(jsonInfo, &alert)
+		if err != nil {
+			return fmt.Errorf("cannot unmarshal json: %v", err)
+		}
+		err = k.Storage.UpdateTag(context.Background(), db.UpdateTagParams{Uuid: TChange.UUID, Value: TChange.Value})
+		if err != nil {
+			return fmt.Errorf("cannot update data in database: %v", err)
+		}
+		err = k.Storage.SaveChange(context.Background(), db.SaveChangeParams{Uuid: TChange.UUID, Column2: TChange.TimeStamp})
+		if err != nil {
+			return fmt.Errorf("cannot update data in database: %v", err)
+		}
+		return nil
+	}
+*/
 func (k *Kafka) ListenTagChanges(ChangesTopic string) error {
 	partitionList, err := k.Consumer.Partitions(ChangesTopic)
 	if err != nil {
@@ -53,16 +91,16 @@ func (k *Kafka) ListenTagChanges(ChangesTopic string) error {
 }
 
 func (k *Kafka) SaveTagValue(jsonInfo []byte) error {
-	var TChange TagChange
-	err := json.Unmarshal(jsonInfo, &TChange)
+	var tagChange TagChange
+	err := json.Unmarshal(jsonInfo, &tagChange)
 	if err != nil {
 		return fmt.Errorf("cannot unmarshal json: %v", err)
 	}
-	err = k.Storage.UpdateTag(context.Background(), db.UpdateTagParams{Uuid: TChange.UUID, Value: TChange.Value})
+	err = k.Storage.UpdateTag(context.Background(), db.UpdateTagParams{Uuid: tagChange.UUID, Value: tagChange.Value})
 	if err != nil {
 		return fmt.Errorf("cannot update data in database: %v", err)
 	}
-	err = k.Storage.SaveChange(context.Background(), db.SaveChangeParams{Uuid: TChange.UUID, Column2: TChange.TimeStamp})
+	err = k.Storage.SaveChange(context.Background(), db.SaveChangeParams{Uuid: tagChange.UUID, Column2: tagChange.TimeStamp})
 	if err != nil {
 		return fmt.Errorf("cannot update data in database: %v", err)
 	}

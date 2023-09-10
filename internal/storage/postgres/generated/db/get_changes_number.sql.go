@@ -10,7 +10,7 @@ import (
 )
 
 const getChangesNum = `-- name: GetChangesNum :many
-SELECT tags.name, COUNT(*) FROM tags_journal  RIGHT JOIN tags ON tags_journal.uuid = tags.uuid GROUP BY tags.name
+SELECT tags.name, COUNT(*) FROM tags_journal  RIGHT JOIN tags ON tags_journal.uuid = tags.uuid WHERE NOW() - interval '5 minute' <= tags_journal.change_time GROUP BY tags.name
 `
 
 type GetChangesNumRow struct {

@@ -13,7 +13,8 @@ import (
 type Config struct {
 	Address      string   `env:"RUN_ADDRESS"`
 	DBAddress    string   `env:"DATABASE_URI"`
-	ChangesTopic string   `env:"KAFKA_TOPIC"`
+	ChangesTopic string   `env:"CHANGES_TOPIC"`
+	AlertsTopic  string   `env:"ALERTS_TOPIC"`
 	Brokers      []string `env:"BROKERS"`
 }
 
@@ -23,7 +24,8 @@ func New() *Config {
 
 	flag.StringVar(&cfg.Address, "a", "127.0.0.1:8080", "set server listening address")
 	flag.StringVar(&cfg.DBAddress, "d", "", "set the DB address")
-	flag.StringVar(&cfg.ChangesTopic, "c", "", "changes topic")
+	flag.StringVar(&cfg.ChangesTopic, "c", "", "changes kafka topic")
+	flag.StringVar(&cfg.AlertsTopic, "alerts", "", "alerts kafka topic")
 	brokersFlag := flag.String("b", "", "brokers address list divided with comas")
 	flag.Parse()
 	cfg.Brokers = strings.Split(*brokersFlag, ",")

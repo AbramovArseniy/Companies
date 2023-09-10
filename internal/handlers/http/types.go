@@ -11,6 +11,22 @@ type node struct {
 	ContactPerson string `json:"contact_person,omitempty"`
 }
 
+type Tag struct {
+	UUID  string  `json:"uuid"`
+	Name  string  `json:"name"`
+	Value float64 `json:"value"`
+}
+
+func tagRowsToTags(rows []db.Tag) []Tag {
+	tags := make([]Tag, len(rows))
+	for i, row := range rows {
+		tags[i].UUID = row.Uuid
+		tags[i].Name = row.Name
+		tags[i].Value = row.Value
+	}
+	return tags
+}
+
 func treeRowsToNodes(rows []db.GetAllTreeRow) []node {
 	nodes := make([]node, len(rows))
 	for i, v := range rows {

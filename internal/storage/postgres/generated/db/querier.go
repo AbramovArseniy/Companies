@@ -6,12 +6,15 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	GetAllTree(ctx context.Context) ([]GetAllTreeRow, error)
 	GetChangesNum(ctx context.Context) ([]GetChangesNumRow, error)
 	GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow, error)
+	GetNodeTags(ctx context.Context, nodeID pgtype.Int4) ([]Tag, error)
 	GetOneNode(ctx context.Context, id int32) (GetOneNodeRow, error)
 	SaveChange(ctx context.Context, arg SaveChangeParams) error
 	UpdateTag(ctx context.Context, arg UpdateTagParams) error
