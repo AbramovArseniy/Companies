@@ -12,23 +12,40 @@ import (
 )
 
 const getNodeTags = `-- name: GetNodeTags :many
-SELECT uuid, name, value, node_id FROM tags WHERE node_id = $1
+SELECT tags.uuid, name, value, node_id, type, alerts.uuid, alert_time, severity, state FROM tags LEFT JOIN alerts ON tags.uuid=alerts.uuid WHERE node_id = $1 AND (alerts.alert_time = (SELECT MAX(alert_time) FROM alerts WHERE uuid=tags.uuid) OR alerts.uuid IS NULL)
 `
 
-func (q *Queries) GetNodeTags(ctx context.Context, nodeID pgtype.Int4) ([]Tag, error) {
+type GetNodeTagsRow struct {
+	Uuid      string           `json:"uuid"`
+	Name      string           `json:"name"`
+	Value     float64          `json:"value"`
+	NodeID    pgtype.Int4      `json:"node_id"`
+	Type      pgtype.Text      `json:"type"`
+	Uuid_2    pgtype.Text      `json:"uuid_2"`
+	AlertTime pgtype.Timestamp `json:"alert_time"`
+	Severity  pgtype.Text      `json:"severity"`
+	State     pgtype.Text      `json:"state"`
+}
+
+func (q *Queries) GetNodeTags(ctx context.Context, nodeID pgtype.Int4) ([]GetNodeTagsRow, error) {
 	rows, err := q.db.Query(ctx, getNodeTags, nodeID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Tag
+	var items []GetNodeTagsRow
 	for rows.Next() {
-		var i Tag
+		var i GetNodeTagsRow
 		if err := rows.Scan(
 			&i.Uuid,
 			&i.Name,
 			&i.Value,
 			&i.NodeID,
+			&i.Type,
+			&i.Uuid_2,
+			&i.AlertTime,
+			&i.Severity,
+			&i.State,
 		); err != nil {
 			return nil, err
 		}

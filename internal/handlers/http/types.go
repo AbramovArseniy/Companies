@@ -1,6 +1,10 @@
 package http
 
-import "github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
+import (
+	"time"
+
+	"github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
+)
 
 type node struct {
 	ID            int32  `json:"id"`
@@ -12,17 +16,25 @@ type node struct {
 }
 
 type Tag struct {
-	UUID  string  `json:"uuid"`
-	Name  string  `json:"name"`
-	Value float64 `json:"value"`
+	UUID          string     `json:"uuid"`
+	Name          string     `json:"name"`
+	Value         float64    `json:"value"`
+	AlertType     string     `json:"alert_type,omitempty"`
+	AlertSeverity string     `json:"alert_sererity,omitempty"`
+	AlertTime     *time.Time `json:"alert_time,omitempty"`
 }
 
-func tagRowsToTags(rows []db.Tag) []Tag {
+func tagRowsToTags(rows []db.GetNodeTagsRow) []Tag {
 	tags := make([]Tag, len(rows))
 	for i, row := range rows {
 		tags[i].UUID = row.Uuid
 		tags[i].Name = row.Name
 		tags[i].Value = row.Value
+		if row.Uuid_2.Valid {
+			tags[i].AlertType = row.Type.String
+			tags[i].AlertSeverity = row.Severity.String
+			tags[i].AlertTime = &row.AlertTime.Time
+		}
 	}
 	return tags
 }

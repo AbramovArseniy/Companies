@@ -8,6 +8,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Alert struct {
+	Type      string           `json:"type"`
+	Uuid      string           `json:"uuid"`
+	AlertTime pgtype.Timestamp `json:"alert_time"`
+	Severity  string           `json:"severity"`
+	State     string           `json:"state"`
+}
+
 type Info struct {
 	Address       pgtype.Text `json:"address"`
 	PhoneNumber   pgtype.Text `json:"phone_number"`

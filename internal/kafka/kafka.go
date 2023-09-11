@@ -70,6 +70,7 @@ func New(dbPool *pgxpool.Pool, cfg cfg.Config) (*Kafka, error) {
 		return nil
 	}
 */
+
 func (k *Kafka) ListenTagChanges(ChangesTopic string) error {
 	partitionList, err := k.Consumer.Partitions(ChangesTopic)
 	if err != nil {
