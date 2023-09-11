@@ -32,7 +32,7 @@ func New(dbPool *pgxpool.Pool, cfg cfg.Config) (*Kafka, error) {
 	}, nil
 }
 
-/*func (k *Kafka) ListenAlerts(AlertsTopic string) error {
+func (k *Kafka) ListenAlerts(AlertsTopic string) error {
 	partitionList, err := k.Consumer.Partitions(AlertsTopic)
 	if err != nil {
 		return err
@@ -45,31 +45,33 @@ func New(dbPool *pgxpool.Pool, cfg cfg.Config) (*Kafka, error) {
 		}
 		go func(pc sarama.PartitionConsumer) {
 			for msg := range pc.Messages() {
-				k.SaveTagValue(msg.Value)
+				k.HandlerAlert(msg.Value)
 			}
 		}(pc)
 	}
 	return nil
-}*/
+}
 
-/*
-	func (k *Kafka) HandlerAlert(jsonInfo []byte) error {
-		var alert Alert
-		err := json.Unmarshal(jsonInfo, &alert)
-		if err != nil {
-			return fmt.Errorf("cannot unmarshal json: %v", err)
-		}
-		err = k.Storage.UpdateTag(context.Background(), db.UpdateTagParams{Uuid: TChange.UUID, Value: TChange.Value})
-		if err != nil {
-			return fmt.Errorf("cannot update data in database: %v", err)
-		}
-		err = k.Storage.SaveChange(context.Background(), db.SaveChangeParams{Uuid: TChange.UUID, Column2: TChange.TimeStamp})
-		if err != nil {
-			return fmt.Errorf("cannot update data in database: %v", err)
-		}
-		return nil
+func (k *Kafka) HandlerAlert(jsonInfo []byte) error {
+	var alert Alert
+	err := json.Unmarshal(jsonInfo, &alert)
+	if err != nil {
+		return fmt.Errorf("cannot unmarshal json: %v", err)
 	}
-*/
+	err = k.Storage.SaveAlert(context.Background(),
+		db.SaveAlertParams{
+			Type:     alert.Type,
+			Uuid:     alert.TagID,
+			Column3:  alert.TimeStamp,
+			Severity: alert.Severity,
+			State:    alert.State,
+		})
+
+	if err != nil {
+		return fmt.Errorf("cannot update data in database: %v", err)
+	}
+	return nil
+}
 
 func (k *Kafka) ListenTagChanges(ChangesTopic string) error {
 	partitionList, err := k.Consumer.Partitions(ChangesTopic)
