@@ -33,6 +33,7 @@ func main() {
 		log.Println("error while creating http handler:", err)
 		return
 	}
+	defer handler.Close()
 	router := handler.Route()
 	httpSrv := http.Server{
 		Addr:    cfg.Address,
@@ -55,6 +56,7 @@ func main() {
 		log.Println("error while creating grpc handler:", err)
 		return
 	}
+	defer grpcHandler.Close()
 	gr := sync.WaitGroup{}
 	pb.RegisterCompaniesServiceServer(grpcSrv, grpcHandler)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
@@ -91,6 +93,11 @@ func main() {
 	if err != nil {
 		log.Println("cannot listen to tag changes:", err)
 	}
+	err = kafka1.ListenAlerts(cfg.AlertsTopic)
+	if err != nil {
+		log.Println("cannot listen to tag changes:", err)
+	}
+	defer kafka1.Close()
 	log.Println("gRPC server started at:", listen.Addr())
 	gr.Wait()
 }

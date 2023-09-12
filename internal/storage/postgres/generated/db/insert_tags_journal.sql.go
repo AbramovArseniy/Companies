@@ -11,12 +11,12 @@ import (
 
 const saveChange = `-- name: SaveChange :exec
 INSERT INTO tags_journal (uuid, change_time)
-VALUES ($1, to_timestamp($2/1000))
+VALUES ($1, to_timestamp($2::float/1000))
 `
 
 type SaveChangeParams struct {
-	Uuid    string      `json:"uuid"`
-	Column2 interface{} `json:"column_2"`
+	Uuid    string  `json:"uuid"`
+	Column2 float64 `json:"column_2"`
 }
 
 func (q *Queries) SaveChange(ctx context.Context, arg SaveChangeParams) error {

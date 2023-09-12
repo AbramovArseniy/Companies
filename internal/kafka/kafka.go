@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/AbramovArseniy/Companies/internal/cfg"
 	"github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
@@ -12,23 +13,34 @@ import (
 )
 
 type Kafka struct {
-	Consumer sarama.Consumer
-	Storage  db.Querier
+	AlertsDBConn   *pgxpool.Conn
+	ChangesDBConn  *pgxpool.Conn
+	Consumer       sarama.Consumer
+	AlertsStorage  db.Querier
+	ChangesStorage db.Querier
 }
 
 func New(dbPool *pgxpool.Pool, cfg cfg.Config) (*Kafka, error) {
-	dbConn, err := dbPool.Acquire(context.Background())
+	alertsDBConn, err := dbPool.Acquire(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("error while acquiring database connection: %w", err)
 	}
-	storage := db.New(dbConn)
+	changesDBConn, err := dbPool.Acquire(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("error while acquiring database connection: %w", err)
+	}
+	changesStorage := db.New(changesDBConn)
 	consumer, err := sarama.NewConsumer(cfg.Brokers, nil)
 	if err != nil {
 		return nil, err
 	}
+	alertsStorage := db.New(alertsDBConn)
 	return &Kafka{
-		Consumer: consumer,
-		Storage:  storage,
+		Consumer:       consumer,
+		AlertsDBConn:   alertsDBConn,
+		ChangesDBConn:  changesDBConn,
+		AlertsStorage:  alertsStorage,
+		ChangesStorage: changesStorage,
 	}, nil
 }
 
@@ -45,20 +57,23 @@ func (k *Kafka) ListenAlerts(AlertsTopic string) error {
 		}
 		go func(pc sarama.PartitionConsumer) {
 			for msg := range pc.Messages() {
-				k.HandlerAlert(msg.Value)
+				err = k.HandleAlert(msg.Value)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 		}(pc)
 	}
 	return nil
 }
 
-func (k *Kafka) HandlerAlert(jsonInfo []byte) error {
+func (k *Kafka) HandleAlert(jsonInfo []byte) error {
 	var alert Alert
 	err := json.Unmarshal(jsonInfo, &alert)
 	if err != nil {
 		return fmt.Errorf("cannot unmarshal json: %v", err)
 	}
-	err = k.Storage.SaveAlert(context.Background(),
+	err = k.AlertsStorage.SaveAlert(context.Background(),
 		db.SaveAlertParams{
 			Type:     alert.Type,
 			Uuid:     alert.TagID,
@@ -66,7 +81,6 @@ func (k *Kafka) HandlerAlert(jsonInfo []byte) error {
 			Severity: alert.Severity,
 			State:    alert.State,
 		})
-
 	if err != nil {
 		return fmt.Errorf("cannot update data in database: %v", err)
 	}
@@ -74,6 +88,7 @@ func (k *Kafka) HandlerAlert(jsonInfo []byte) error {
 }
 
 func (k *Kafka) ListenTagChanges(ChangesTopic string) error {
+	var err error = nil
 	partitionList, err := k.Consumer.Partitions(ChangesTopic)
 	if err != nil {
 		return err
@@ -86,11 +101,14 @@ func (k *Kafka) ListenTagChanges(ChangesTopic string) error {
 		}
 		go func(pc sarama.PartitionConsumer) {
 			for msg := range pc.Messages() {
-				k.SaveTagValue(msg.Value)
+				err = k.SaveTagValue(msg.Value)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 		}(pc)
 	}
-	return nil
+	return err
 }
 
 func (k *Kafka) SaveTagValue(jsonInfo []byte) error {
@@ -99,11 +117,11 @@ func (k *Kafka) SaveTagValue(jsonInfo []byte) error {
 	if err != nil {
 		return fmt.Errorf("cannot unmarshal json: %v", err)
 	}
-	err = k.Storage.UpdateTag(context.Background(), db.UpdateTagParams{Uuid: tagChange.UUID, Value: tagChange.Value})
+	err = k.ChangesStorage.UpdateTag(context.Background(), db.UpdateTagParams{Uuid: tagChange.UUID, Value: tagChange.Value})
 	if err != nil {
 		return fmt.Errorf("cannot update data in database: %v", err)
 	}
-	err = k.Storage.SaveChange(context.Background(), db.SaveChangeParams{Uuid: tagChange.UUID, Column2: tagChange.TimeStamp})
+	err = k.ChangesStorage.SaveChange(context.Background(), db.SaveChangeParams{Uuid: tagChange.UUID, Column2: tagChange.TimeStamp})
 	if err != nil {
 		return fmt.Errorf("cannot update data in database: %v", err)
 	}
@@ -115,5 +133,7 @@ func (k *Kafka) Close() error {
 	if err != nil {
 		return err
 	}
+	k.AlertsDBConn.Release()
+	k.ChangesDBConn.Release()
 	return nil
 }

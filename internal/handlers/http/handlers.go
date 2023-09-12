@@ -25,6 +25,7 @@ const contentTypeJSON = "application/json"
 
 // httpHandler describes http server
 type httpHandler struct {
+	DBConn  *pgxpool.Conn
 	Storage db.Querier
 }
 
@@ -35,8 +36,8 @@ func New(dbPool *pgxpool.Pool) (*httpHandler, error) {
 		return nil, fmt.Errorf("error while acquiring database connection: %w", err)
 	}
 	storage := db.New(dbConn)
-
 	return &httpHandler{
+		DBConn:  dbConn,
 		Storage: storage,
 	}, nil
 }
@@ -153,6 +154,7 @@ func (h *httpHandler) GetNodeTagsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	tags := tagRowsToTags(tagRows)
+	log.Println(*tags[0].AlertTime)
 	jsonTags, err := json.Marshal(tags)
 	if err != nil {
 		log.Println("error while marshaling json:", err)
@@ -208,4 +210,8 @@ func (h *httpHandler) Route() chi.Router {
 	r.Get("/tags/{node_id}", h.GetNodeTagsHandler)
 	r.Get("/stat", h.GetStatsHandler)
 	return r
+}
+
+func (h *httpHandler) Close() {
+	h.DBConn.Release()
 }

@@ -14,7 +14,7 @@ import (
 // CompaniesServer describes grpc server
 type CompaniesServer struct {
 	pb.UnimplementedCompaniesServiceServer
-
+	DBConn  *pgxpool.Conn
 	Storage db.Querier
 }
 
@@ -27,6 +27,7 @@ func New(dbPool *pgxpool.Pool) (*CompaniesServer, error) {
 	storage := db.New(dbConn)
 
 	return &CompaniesServer{
+		DBConn:  dbConn,
 		Storage: storage,
 	}, nil
 }
@@ -125,4 +126,8 @@ func (s *CompaniesServer) GetNode(_ context.Context, req *pb.GetNodeRequest) (*p
 		resp.Info.PhoneNumber = node.PhoneNumber.String
 	}
 	return resp, nil
+}
+
+func (s *CompaniesServer) Close() {
+	s.DBConn.Release()
 }

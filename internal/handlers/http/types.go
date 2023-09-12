@@ -20,7 +20,7 @@ type Tag struct {
 	Name          string     `json:"name"`
 	Value         float64    `json:"value"`
 	AlertType     string     `json:"alert_type,omitempty"`
-	AlertSeverity string     `json:"alert_sererity,omitempty"`
+	AlertSeverity string     `json:"alert_severity,omitempty"`
 	AlertTime     *time.Time `json:"alert_time,omitempty"`
 }
 
@@ -33,7 +33,8 @@ func tagRowsToTags(rows []db.GetNodeTagsRow) []Tag {
 		if row.Uuid_2.Valid {
 			tags[i].AlertType = row.Type.String
 			tags[i].AlertSeverity = row.Severity.String
-			tags[i].AlertTime = &row.AlertTime.Time
+			t := row.AlertTime.Time
+			tags[i].AlertTime = &t
 		}
 	}
 	return tags

@@ -14,5 +14,3 @@ type Alert struct {
 	Severity  string  `json:"severity"`
 	State     string  `json:"alert_state"`
 }
-
-/*{: "some_alert_type", "uuid": "32dd6d6e-d7ae-4e4d-9b8e-8ba309fb4bbb", "ts": 1691897068000, "severity": "low", : "error|restore" }*/

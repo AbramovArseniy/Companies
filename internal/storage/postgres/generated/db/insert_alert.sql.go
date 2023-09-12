@@ -11,15 +11,15 @@ import (
 
 const saveAlert = `-- name: SaveAlert :exec
 INSERT INTO alerts (type, uuid, alert_time, severity, state)
-VALUES ($1, $2, to_timestamp($3/1000), $4, $5)
+VALUES ($1, $2, to_timestamp($3::float/1000), $4, $5)
 `
 
 type SaveAlertParams struct {
-	Type     string      `json:"type"`
-	Uuid     string      `json:"uuid"`
-	Column3  interface{} `json:"column_3"`
-	Severity string      `json:"severity"`
-	State    string      `json:"state"`
+	Type     string  `json:"type"`
+	Uuid     string  `json:"uuid"`
+	Column3  float64 `json:"column_3"`
+	Severity string  `json:"severity"`
+	State    string  `json:"state"`
 }
 
 func (q *Queries) SaveAlert(ctx context.Context, arg SaveAlertParams) error {
