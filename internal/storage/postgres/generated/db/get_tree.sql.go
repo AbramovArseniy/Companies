@@ -7,7 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getAllTree = `-- name: GetAllTree :many
@@ -15,21 +16,21 @@ SELECT nodes.id, nodes.name, nodes.parent_id, info.address, info.phone_number, i
 `
 
 type GetAllTreeRow struct {
-	ID            int32          `json:"id"`
-	Name          string         `json:"name"`
-	ParentID      sql.NullInt32  `json:"parent_id"`
-	Address       sql.NullString `json:"address"`
-	PhoneNumber   sql.NullString `json:"phone_number"`
-	ContactPerson sql.NullString `json:"contact_person"`
+	ID            int32       `json:"id"`
+	Name          string      `json:"name"`
+	ParentID      pgtype.Int4 `json:"parent_id"`
+	Address       pgtype.Text `json:"address"`
+	PhoneNumber   pgtype.Text `json:"phone_number"`
+	ContactPerson pgtype.Text `json:"contact_person"`
 }
 
 func (q *Queries) GetAllTree(ctx context.Context) ([]GetAllTreeRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAllTree)
+	rows, err := q.db.Query(ctx, getAllTree)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetAllTreeRow{}
+	var items []GetAllTreeRow
 	for rows.Next() {
 		var i GetAllTreeRow
 		if err := rows.Scan(
@@ -43,9 +44,6 @@ func (q *Queries) GetAllTree(ctx context.Context) ([]GetAllTreeRow, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

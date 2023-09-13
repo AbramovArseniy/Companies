@@ -7,7 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getHierarchy = `-- name: GetHierarchy :many
@@ -27,22 +28,22 @@ WITH RECURSIVE r(id, name, parent_id, level) AS
 `
 
 type GetHierarchyRow struct {
-	ID            sql.NullInt32  `json:"id"`
-	Name          sql.NullString `json:"name"`
-	ParentID      sql.NullInt32  `json:"parent_id"`
-	Level         int64          `json:"level"`
-	Address       sql.NullString `json:"address"`
-	PhoneNumber   sql.NullString `json:"phone_number"`
-	ContactPerson sql.NullString `json:"contact_person"`
+	ID            pgtype.Int4 `json:"id"`
+	Name          pgtype.Text `json:"name"`
+	ParentID      pgtype.Int4 `json:"parent_id"`
+	Level         int64       `json:"level"`
+	Address       pgtype.Text `json:"address"`
+	PhoneNumber   pgtype.Text `json:"phone_number"`
+	ContactPerson pgtype.Text `json:"contact_person"`
 }
 
 func (q *Queries) GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow, error) {
-	rows, err := q.db.QueryContext(ctx, getHierarchy, id)
+	rows, err := q.db.Query(ctx, getHierarchy, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetHierarchyRow{}
+	var items []GetHierarchyRow
 	for rows.Next() {
 		var i GetHierarchyRow
 		if err := rows.Scan(
@@ -57,9 +58,6 @@ func (q *Queries) GetHierarchy(ctx context.Context, id int32) ([]GetHierarchyRow
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

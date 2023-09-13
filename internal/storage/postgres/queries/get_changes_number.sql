@@ -1,0 +1,2 @@
+-- name: GetChangesNum :many
+SELECT tags.name, COUNT(*) FROM tags_journal  RIGHT JOIN tags ON tags_journal.uuid = tags.uuid WHERE NOW() - interval '5 minute' <= tags_journal.change_time GROUP BY tags.name;

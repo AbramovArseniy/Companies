@@ -3,32 +3,33 @@ package grpc
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
 	"log"
 
-	"github.com/AbramovArseniy/Companies/internal/cfg"
 	pb "github.com/AbramovArseniy/Companies/internal/handlers/grpc/proto"
-	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/db"
+	db "github.com/AbramovArseniy/Companies/internal/storage/postgres/generated/db"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // CompaniesServer describes grpc server
 type CompaniesServer struct {
 	pb.UnimplementedCompaniesServiceServer
-
+	DBConn  *pgxpool.Conn
 	Storage db.Querier
 }
 
 // New creates new CompaniesServer from config
-func New(cfg *cfg.Config) *CompaniesServer {
-	database, err := sql.Open("pgx", cfg.DBAddress)
+func New(dbPool *pgxpool.Pool) (*CompaniesServer, error) {
+	dbConn, err := dbPool.Acquire(context.Background())
 	if err != nil {
-		log.Println("error while opening database:", err)
-		return nil
+		return nil, fmt.Errorf("error while acquiring database connection: %w", err)
 	}
-	querier := db.New(database)
+	storage := db.New(dbConn)
+
 	return &CompaniesServer{
-		Storage: querier,
-	}
+		DBConn:  dbConn,
+		Storage: storage,
+	}, nil
 }
 
 // GetTree returns information about all the nodes in the tree
@@ -125,4 +126,8 @@ func (s *CompaniesServer) GetNode(_ context.Context, req *pb.GetNodeRequest) (*p
 		resp.Info.PhoneNumber = node.PhoneNumber.String
 	}
 	return resp, nil
+}
+
+func (s *CompaniesServer) Close() {
+	s.DBConn.Release()
 }
